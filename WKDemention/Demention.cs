@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using HarmonyLib;
 using System.IO;
 using System.Reflection;
@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Demention
 {
-    [BepInPlugin("com.nimius.demention", "Demention", "1.0.0")]
+    [BepInPlugin("com.nimius.demention", "Demention", "1.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         private Harmony _harmony;
