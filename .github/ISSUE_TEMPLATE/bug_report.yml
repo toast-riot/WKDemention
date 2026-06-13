@@ -1,0 +1,30 @@
+name: "Demention Issue Form"
+description: File a bug report or ask for specific additions, or just ask a general question about the mod.
+title: "[Issue]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this form
+  
+  - type: dropdown
+    id: user_tags
+    attributes:
+      label: "Select the category that best fits this issue:"
+      description: "Please choose one of our approved tags."
+      multiple: false
+      options:
+        - "Bug"
+        - "Feature Request"
+        - "Question"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Please explain your bug, suggestion, or question in detail."
+      placeholder: "Text here..."
+    validations:
+      required: true
