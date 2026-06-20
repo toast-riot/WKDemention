@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -50,8 +49,7 @@ public class DementionUI : MonoBehaviour {
     }
 
     void LoadAndBuildUI() {
-        string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        string bundlePath = Path.Combine(modPath, "Assets", "demention");
+        string bundlePath = Path.Join(BepInEx.Paths.PluginPath, typeof(DementionPlugin).Assembly.GetName().Name, "Assets/dementionui");
 
         if (!File.Exists(bundlePath)) { CleanUpFailedInit(); return; }
         AssetBundle bundle = AssetBundle.LoadFromFile(bundlePath);
