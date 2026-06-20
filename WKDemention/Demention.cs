@@ -2,7 +2,7 @@ using BepInEx;
 using HarmonyLib;
 
 namespace Demention {
-    [BepInPlugin("com.nimius.demention", "Demention", "1.0.1")]
+    [BepInPlugin("com.nimius.demention", "Demention", "1.0.2")]
     public class Plugin : BaseUnityPlugin {
         Harmony _harmony;
 
