@@ -8,6 +8,7 @@ namespace Demention {
 
         void Awake() {
             // Apply all harmony patches automatically
+            Settings.Init(Config);
             this._harmony = new Harmony("com.nimius.demention");
             this._harmony.PatchAll();
             Logger.LogInfo("Demention Harmony Patches applied successfully.");
@@ -15,6 +16,11 @@ namespace Demention {
             // Launch our core memory loop engine
             DementionUI.Initialize();
             Logger.LogInfo("Demention UI Engine Initialized.");
+        }
+
+        void OnDestroy() {
+            Config.Save();
+            _harmony?.UnpatchSelf();
         }
     }
 }
