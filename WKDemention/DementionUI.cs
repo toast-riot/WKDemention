@@ -11,7 +11,7 @@ public class DementionUI : MonoBehaviour
     public static DementionUI Instance { get; private set; }
 
     [Header("Dementia Timer Settings")]
-    private readonly float episodeInterval = 360f;
+    private readonly float episodeInterval = 60f;
 
     [Header("Transition Durations")]
     private readonly float flashFadeInTime = 0.1f;
