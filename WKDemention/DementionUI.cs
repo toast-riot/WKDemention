@@ -120,7 +120,7 @@ public class DementionUI : MonoBehaviour {
 
         if (isTransitioning) return;
 
-        if (Input.GetKeyDown(KeyCode.H) && !hasCapturedAnySnapshot && episodeTimer > (episodeInterval * 0.25f)) { // TODO: add setting
+        if (Input.GetKeyDown(Settings.ForceEpisodeKey.Value) && !hasCapturedAnySnapshot && episodeTimer > (episodeInterval * 0.25f)) {
             RecordManualPose();
             hasCapturedAnySnapshot = true;
         }
