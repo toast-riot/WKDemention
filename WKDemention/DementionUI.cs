@@ -6,43 +6,42 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DementionUI : MonoBehaviour
-{
+namespace Demention {
+
+public class DementionUI : MonoBehaviour {
     public static DementionUI Instance { get; private set; }
 
     [Header("Dementia Timer Settings")]
-    private readonly float episodeInterval = 60f;
+    readonly float episodeInterval = 60f;
 
     [Header("Transition Durations")]
-    private readonly float flashFadeInTime = 0.1f;
-    private readonly float flashFadeOutTime = 0.4f;
-    private readonly float freezeFrameFadeOutTime = 1.25f;
+    readonly float flashFadeInTime = 0.1f;
+    readonly float flashFadeOutTime = 0.4f;
+    readonly float freezeFrameFadeOutTime = 1.25f;
 
-    private GameObject uiInstance;
-    private RawImage screenshotImage;
-    private Image flashImage;
-    private TextMeshProUGUI timerText;
+    GameObject uiInstance;
+    RawImage screenshotImage;
+    Image flashImage;
+    TextMeshProUGUI timerText;
 
-    private readonly PlayerState[] locationHistory = new PlayerState[10];
-    private int historyCount = 0;
-    private int historyWriteIndex = 0;
+    readonly PlayerState[] locationHistory = new PlayerState[10];
+    int historyCount = 0;
+    int historyWriteIndex = 0;
 
-    private RenderTexture capturedFrame;
-    private float episodeTimer;
-    private bool isTransitioning = false;
+    RenderTexture capturedFrame;
+    float episodeTimer;
+    bool isTransitioning = false;
 
-    private bool foundPlayer = false;
-    private bool hasCapturedAnySnapshot = false;
+    bool foundPlayer = false;
+    bool hasCapturedAnySnapshot = false;
 
-    private CL_GameManager cachedGameManager;
+    CL_GameManager cachedGameManager;
 
-    public struct PlayerState
-    {
+    public struct PlayerState {
         public Pose pose;
     }
 
-    public static void Initialize()
-    {
+    public static void Initialize() {
         if (Instance != null) return;
         GameObject uiHost = new GameObject("DementionUIHost");
         DontDestroyOnLoad(uiHost);
@@ -50,34 +49,33 @@ public class DementionUI : MonoBehaviour
         Instance.LoadAndBuildUI();
     }
 
-    private void LoadAndBuildUI()
-    {
+    void LoadAndBuildUI() {
         string modPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         string bundlePath = Path.Combine(modPath, "Assets", "demention");
-        
+
         if (!File.Exists(bundlePath)) { CleanUpFailedInit(); return; }
         AssetBundle bundle = AssetBundle.LoadFromFile(bundlePath);
-        
+
         if (bundle == null) { CleanUpFailedInit(); return; }
         GameObject uiPrefab = null;
         string[] assetNames = bundle.GetAllAssetNames();
-        
+
         if (assetNames.Length > 0) uiPrefab = bundle.LoadAsset<GameObject>(assetNames[0]);
-        
+
         if (uiPrefab == null) { bundle.Unload(false); CleanUpFailedInit(); return; }
-        
+
         uiInstance = Instantiate(uiPrefab);
-        
+
         DontDestroyOnLoad(uiInstance);
-        
+
         bundle.Unload(false);
-        
+
         Canvas ourCanvas = uiInstance.GetComponent<Canvas>();
         if (ourCanvas != null) { ourCanvas.renderMode = RenderMode.ScreenSpaceOverlay; ourCanvas.worldCamera = null; ourCanvas.sortingOrder = 32767; }
         CanvasScaler scaler = uiInstance.GetComponent<CanvasScaler>();
-        
+
         if (scaler != null) { scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight; scaler.matchWidthOrHeight = 0.5f; }
-        
+
         screenshotImage = uiInstance.transform.Find("ScreenshotImage")?.GetComponent<RawImage>();
         flashImage = uiInstance.transform.Find("FlashImage")?.GetComponent<Image>();
 
@@ -91,19 +89,15 @@ public class DementionUI : MonoBehaviour
         episodeTimer = episodeInterval;
     }
 
-    void Update()
-    {
-        if (cachedGameManager == null)
-        {
+    void Update() {
+        if (cachedGameManager == null) {
             cachedGameManager = CL_GameManager.FindObjectOfType<CL_GameManager>();
         }
 
         if (cachedGameManager != null && CL_GameManager.gamemode.allowLeaderboardScoring) CL_GameManager.gamemode.allowLeaderboardScoring = false;
 
-        if (ENT_Player.playerObject == null)
-        {
-            if (foundPlayer)
-            {
+        if (ENT_Player.playerObject == null) {
+            if (foundPlayer) {
                 foundPlayer = false;
                 timerText?.gameObject.SetActive(false);
             }
@@ -112,27 +106,23 @@ public class DementionUI : MonoBehaviour
 
         bool isGamePaused = (cachedGameManager != null && cachedGameManager.isPaused);
 
-        if (cachedGameManager != null && CL_GameManager.IsLoading())
-        {
+        if (cachedGameManager != null && CL_GameManager.IsLoading()) {
             episodeTimer = episodeInterval;
             hasCapturedAnySnapshot = true;
         }
 
-        if ((foundPlayer && ENT_Player.playerObject.health <= 0) || isGamePaused)
-        {
+        if ((foundPlayer && ENT_Player.playerObject.health <= 0) || isGamePaused) {
             timerText?.gameObject.SetActive(false);
             foundPlayer = false;
         }
-        else if (!foundPlayer)
-        {
+        else if (!foundPlayer) {
             foundPlayer = true;
             timerText?.gameObject.SetActive(true);
         }
 
         if (isTransitioning) return;
 
-        if (Input.GetKeyDown(KeyCode.H) && !hasCapturedAnySnapshot && episodeTimer > (episodeInterval * 0.25f))
-        {
+        if (Input.GetKeyDown(KeyCode.H) && !hasCapturedAnySnapshot && episodeTimer > (episodeInterval * 0.25f)) {
             RecordManualPose();
             hasCapturedAnySnapshot = true;
         }
@@ -140,11 +130,9 @@ public class DementionUI : MonoBehaviour
         HandleTimers();
     }
 
-    private void HandleTimers()
-    {
+    void HandleTimers() {
         episodeTimer -= Time.deltaTime;
-        if (timerText != null)
-        {
+        if (timerText != null) {
             TimeSpan t = TimeSpan.FromSeconds(Mathf.Max(0, episodeTimer));
             timerText.text = string.Format("{0:0}:{1:00}:{2:00}", t.Minutes, t.Seconds, t.Milliseconds / 10);
 
@@ -152,18 +140,15 @@ public class DementionUI : MonoBehaviour
             timerText.color = Color.Lerp(Color.white, Color.red, progress);
         }
 
-        if (!hasCapturedAnySnapshot)
-        {
+        if (!hasCapturedAnySnapshot) {
             float halfTime = episodeInterval * 0.5f;
             float endThreshold = 1.0f;
 
-            if (episodeTimer <= halfTime && episodeTimer >= endThreshold)
-            {
+            if (episodeTimer <= halfTime && episodeTimer >= endThreshold) {
                 RecordCurrentPose();
                 hasCapturedAnySnapshot = true;
             }
-            else if (episodeTimer <= 0.1f)
-            {
+            else if (episodeTimer <= 0.1f) {
                 RecordCurrentPose();
                 hasCapturedAnySnapshot = true;
             }
@@ -172,10 +157,8 @@ public class DementionUI : MonoBehaviour
         if (episodeTimer <= 0f) StartCoroutine(ExecuteDementionSequence());
     }
 
-    private void RecordManualPose()
-    {
-        locationHistory[historyWriteIndex] = new PlayerState
-        {
+    void RecordManualPose() {
+        locationHistory[historyWriteIndex] = new PlayerState {
             pose = new Pose(ENT_Player.playerObject.transform.position, ENT_Player.playerObject.transform.rotation)
         };
 
@@ -187,12 +170,10 @@ public class DementionUI : MonoBehaviour
         StartCoroutine(TriggerFlashFeedback());
     }
 
-    private void RecordCurrentPose()
-    {
+    void RecordCurrentPose() {
         Transform pTransform = ENT_Player.playerObject.transform;
 
-        locationHistory[historyWriteIndex] = new PlayerState
-        {
+        locationHistory[historyWriteIndex] = new PlayerState {
             pose = new Pose(pTransform.position, pTransform.rotation)
         };
 
@@ -202,13 +183,11 @@ public class DementionUI : MonoBehaviour
         StartCoroutine(TriggerFlashFeedback());
     }
 
-    public void ForceTriggerEpisode()
-    {
+    public void ForceTriggerEpisode() {
         if (!isTransitioning && ENT_Player.playerObject != null) StartCoroutine(ExecuteDementionSequence());
     }
 
-    private IEnumerator ExecuteDementionSequence()
-    {
+    IEnumerator ExecuteDementionSequence() {
         isTransitioning = true;
         timerText?.gameObject.SetActive(false);
         yield return new WaitForEndOfFrame();
@@ -216,15 +195,13 @@ public class DementionUI : MonoBehaviour
         if (screenshotImage != null) { screenshotImage.color = Color.white; screenshotImage.gameObject.SetActive(true); }
         flashImage?.gameObject.SetActive(true);
         float elapsed = 0f;
-        while (elapsed < flashFadeInTime)
-        {
+        while (elapsed < flashFadeInTime) {
             elapsed += Time.deltaTime;
             if (flashImage != null) flashImage.color = new Color(1, 1, 1, Mathf.Lerp(0, 1, elapsed / flashFadeInTime));
             yield return null;
         }
 
-        if (historyCount > 0)
-        {
+        if (historyCount > 0) {
             int randomIndex = UnityEngine.Random.Range(0, historyCount);
             PlayerState state = locationHistory[randomIndex];
 
@@ -233,8 +210,7 @@ public class DementionUI : MonoBehaviour
         }
 
         elapsed = 0f;
-        while (elapsed < flashFadeOutTime)
-        {
+        while (elapsed < flashFadeOutTime) {
             elapsed += Time.deltaTime;
             if (flashImage != null) flashImage.color = new Color(1, 1, 1, Mathf.Lerp(1, 0, elapsed / flashFadeOutTime));
             yield return null;
@@ -242,8 +218,7 @@ public class DementionUI : MonoBehaviour
         flashImage?.gameObject.SetActive(false);
         elapsed = 0f;
         Color fullOpacity = Color.white;
-        while (elapsed < freezeFrameFadeOutTime)
-        {
+        while (elapsed < freezeFrameFadeOutTime) {
             elapsed += Time.deltaTime;
             fullOpacity.a = Mathf.Lerp(1, 0, elapsed / freezeFrameFadeOutTime);
             if (screenshotImage != null) screenshotImage.color = fullOpacity;
@@ -252,8 +227,7 @@ public class DementionUI : MonoBehaviour
 
         screenshotImage?.gameObject.SetActive(false);
 
-        if (timerText != null)
-        {
+        if (timerText != null) {
             TimeSpan t = TimeSpan.FromSeconds(episodeInterval);
             timerText.text = string.Format("{0:0}:{1:00}:{2:00}", t.Minutes, t.Seconds, t.Milliseconds / 10);
 
@@ -264,8 +238,7 @@ public class DementionUI : MonoBehaviour
 
             float fadeElapsed = 0f;
             float fadeDuration = 0.5f;
-            while (fadeElapsed < fadeDuration)
-            {
+            while (fadeElapsed < fadeDuration) {
                 fadeElapsed += Time.deltaTime;
                 timerText.alpha = Mathf.Lerp(0f, 1f, fadeElapsed / fadeDuration);
                 yield return null;
@@ -280,8 +253,7 @@ public class DementionUI : MonoBehaviour
         isTransitioning = false;
     }
 
-    private IEnumerator TriggerFlashFeedback()
-    {
+    IEnumerator TriggerFlashFeedback() {
         if (flashImage == null) yield break;
 
         flashImage.gameObject.SetActive(true);
@@ -290,8 +262,7 @@ public class DementionUI : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
 
         float elapsed = 0f;
-        while (elapsed < 0.2f)
-        {
+        while (elapsed < 0.2f) {
             elapsed += Time.deltaTime;
             flashImage.color = new Color(1, 1, 1, Mathf.Lerp(0.2f, 0f, elapsed / 0.2f));
             yield return null;
@@ -299,14 +270,14 @@ public class DementionUI : MonoBehaviour
         flashImage.gameObject.SetActive(false);
     }
 
-    private void CleanUpFailedInit()
-    {
+    void CleanUpFailedInit() {
         if (uiInstance != null) Destroy(uiInstance);
         Destroy(gameObject);
     }
 
-    private void OnDestroy()
-    {
+    void OnDestroy() {
         capturedFrame?.Release();
     }
+}
+
 }
