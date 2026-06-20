@@ -11,8 +11,8 @@ namespace Demention {
 public class DementionUI : MonoBehaviour {
     public static DementionUI Instance { get; private set; }
 
-    [Header("Dementia Timer Settings")]
-    readonly float episodeInterval = 60f;
+    // gets called a lot, should probably be cached
+    float episodeInterval => Settings.EpisodeInterval.Value;
 
     [Header("Transition Durations")]
     readonly float flashFadeInTime = 0.1f;
@@ -122,7 +122,7 @@ public class DementionUI : MonoBehaviour {
 
         if (isTransitioning) return;
 
-        if (Input.GetKeyDown(KeyCode.H) && !hasCapturedAnySnapshot && episodeTimer > (episodeInterval * 0.25f)) {
+        if (Input.GetKeyDown(KeyCode.H) && !hasCapturedAnySnapshot && episodeTimer > (episodeInterval * 0.25f)) { // TODO: add setting
             RecordManualPose();
             hasCapturedAnySnapshot = true;
         }

@@ -47,8 +47,8 @@
     <Reference Include="UnityEngine.ScreenCaptureModule">
       <HintPath>..\lib\23218120\UnityEngine.ScreenCaptureModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\lib\23218120\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.UI-publicized">
+      <HintPath>..\lib\23218120\UnityEngine.UI-publicized.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>..\lib\23218120\UnityEngine.UIModule.dll</HintPath>
